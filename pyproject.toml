@@ -1,0 +1,8 @@
+[project]
+name = "slow-api"
+
+[project.optional-dependencies]
+
+dev = [
+  "uvicorn[standard]",
+]
