@@ -1,18 +1,53 @@
 from asyncio import sleep
-from typing import Any, Awaitable, Callable, MutableMapping
+from typing import Any, Awaitable, Callable, Literal, MutableMapping
 
 
 Scope = MutableMapping[str, Any]
 Message = MutableMapping[str, Any]
 Recieve = Callable[[], Awaitable[Message]]
 Send = Callable[[Message], Awaitable[None]]
+RouteHandler = Callable[[], MutableMapping[str, Any]]
+
+
+class UnhandledProtocolException(Exception):
+    ...
+
+
+class PathNotFoundException(Exception):
+    ...
+
+
+class HttpMethodNotFoundException(Exception):
+    ...
+
+
+HttpMethod = Literal[
+    "GET", "POST"
+]
 
 
 class SlowAPI:
 
     connections = 0
+    routes = {}
 
-    async def handle_lifespan(self, scope: Scope, receive: Recieve, send: Send):
+    def add_route(self, handler: RouteHandler, path: str, method: HttpMethod) -> None:
+        print(handler, path, method)
+        if path not in self.routes:
+            self.routes[path] = {}
+
+        if method in self.routes[path]:
+            raise ValueError("Method already added to route.")
+
+        self.routes[path][method] = handler
+
+    def get(self, path: str):
+        def decorate(func):
+            self.add_route(func, path, "GET")
+            return func
+        return decorate
+
+    async def _handle_lifespan(self, scope: Scope, receive: Recieve, send: Send) -> None:
         assert scope["type"] == "lifespan"
 
         while True:
@@ -25,7 +60,7 @@ class SlowAPI:
                 await send({"type": "lifespan.shutdown.complete"})
                 break
 
-    async def handle_http(self, scope: Scope, receive: Recieve, send: Send):
+    async def _handle_http(self, scope: Scope, receive: Recieve, send: Send) -> None:
         assert scope["type"] == "http"
 
         # Remember, this is Slow API...
@@ -41,6 +76,19 @@ class SlowAPI:
             if not message["more_body"]:
                 break
 
+        path = scope["path"]
+        method = scope["method"]
+
+        print(f"Routes: {self.routes}")
+
+        if path not in self.routes:
+            raise PathNotFoundException
+
+        if method not in self.routes[path]:
+            raise HttpMethodNotFoundException
+
+        route = self.routes[path][method]
+
         response = {
             "type": "http.response.start",
             "status": 200,
@@ -50,9 +98,11 @@ class SlowAPI:
         print(f"Sending response start: {response}")
         await send(response)
 
+        body = route()
+
         response = {
             "type": "http.response.body",
-            "body": b"Hello World",
+            "body": body,
             "more_body": False
         }
 
@@ -66,9 +116,13 @@ class SlowAPI:
         print(f"Begin connection: {current_connection}, Scope: {scope}")
 
         if scope["type"] == "lifespan":
-            await self.handle_lifespan(scope, receive, send)
-        if scope["type"] == "http":
-            await self.handle_http(scope, receive, send)
+            await self._handle_lifespan(scope, receive, send)
+        elif scope["type"] == "http":
+            await self._handle_http(scope, receive, send)
+        # elif scope["type"] == "http":
+        # TODO: handle_websocket(...)
+        else:
+            raise UnhandledProtocolException
 
         print(f"End connection: {current_connection}")
 
@@ -77,6 +131,14 @@ if __name__ == "__main__":
     import uvicorn
 
     app = SlowAPI()
+
+    @app.get("/")
+    def get_index():
+        return b"Hello World"
+
+    @app.get("/items")
+    def get_items2():
+        return b"Here are some items"
 
     uvicorn.run(
         app,
