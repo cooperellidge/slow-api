@@ -137,7 +137,7 @@ if __name__ == "__main__":
         return b"Hello World"
 
     @app.get("/items")
-    def get_items2():
+    def get_items():
         return b"Here are some items"
 
     uvicorn.run(
