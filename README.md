@@ -16,15 +16,20 @@ curl -v http://127.0.0.1:42069
 ```
 
 ## TODOs
+- [x] connect uvicorn to slow-api
+- [x] manage app startup/shutdown
+- [x] return hello world
+- [x] add routing
 - [ ] add all HTTP methods
 - [ ] add some tests
 - [ ] upload to test pypi
 - [ ] add different media types for responses, e.g. application/json
 - [ ] add app logger with logger levels
 - [ ] add websockets
-- [ ] handle path params dynamically
+- [ ] handle path params
+- [ ] handle query params
 - [ ] improve type hinting, especially around endpoints and responses
-- [ ] add lifespans (startup and shutdown events)
+- [ ] add custom lifespans (startup and shutdown events)
 - [ ] add middleware
 - [ ] add SwaggerUI docs
 - [ ] add background tasks
