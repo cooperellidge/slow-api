@@ -14,3 +14,18 @@ An upcoming little project of mine is to create an ASGI protocol server, inspire
 ```bash
 curl -v http://127.0.0.1:42069
 ```
+
+## TODOs
+- [] add all HTTP methods
+- [] add some tests
+- [] upload to test pypi
+- [] add different media types for responses, e.g. application/json
+- [] add app logger with logger levels
+- [] add websockets
+- [] handle path params dynamically
+- [] improve type hinting, especially around endpoints and responses
+- [] add lifespans (startup and shutdown events)
+- [] add middleware
+- [] add SwaggerUI docs
+- [] add background tasks
+- [] handle CORS config
