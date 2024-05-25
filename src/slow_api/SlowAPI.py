@@ -28,8 +28,10 @@ HttpMethod = Literal[
 
 class SlowAPI:
 
-    connections = 0
-    routes = {}
+    def __init__(self) -> None:
+        self.connections = 0
+        self.routes = {}
+        pass
 
     def add_route(self, handler: RouteHandler, path: str, method: HttpMethod) -> None:
         print(handler, path, method)
