@@ -7,3 +7,10 @@ It is simply me playing around with ASGI implementations.
 This project was created as an exercise to learn more about HTTP servers, web application frameworks, and async Python.
 
 An upcoming little project of mine is to create an ASGI protocol server, inspired by `uvicorn`, to parse the HTTP and hand over to this apps made by this ASGI application, `SlowAPI`.
+
+## Getting Started
+1. Run `SlowAPi.py` as a Python script.
+2. In another terminal, hit em with a curl
+```bash
+curl -v http://127.0.0.1:42069
+```
