@@ -1,5 +1,7 @@
 # slow-api
 
+![Tests](https://github.com/cooperellidge/slow-api/actions/workflows/tests.yml/badge.svg)
+
 This is obviously not production-ready... and is intended never to be.
 It is simply me playing around with ASGI implementations.
 
