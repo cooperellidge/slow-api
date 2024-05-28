@@ -1,6 +1,7 @@
 #! /bin/bash
 
 rm -vr .venv
+rm -vr .*_cache
 
 set -x
 
