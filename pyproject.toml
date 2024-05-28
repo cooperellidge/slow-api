@@ -6,3 +6,42 @@ name = "slow-api"
 dev = [
   "uvicorn[standard]",
 ]
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+  "F",
+  "E", "W",
+  "UP",
+  "B",
+  "SIM",
+  "I",
+  "N",
+  "D",
+  "YTT",
+  "ANN",
+  "ASYNC",
+  "FBT",
+  "A",
+  "C4",
+  "T10",
+  "FA",
+  "INP",
+  "T20",
+  "RSE",
+  "SLF",
+  "TID",
+  "ARG",
+  "TD",
+  "NPY"
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
