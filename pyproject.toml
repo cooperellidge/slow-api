@@ -1,5 +1,6 @@
 [project]
 name = "slow-api"
+version = "0.0.1"
 
 [project.optional-dependencies]
 

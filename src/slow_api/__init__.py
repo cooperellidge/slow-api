@@ -1,3 +1,5 @@
 """_summary_."""
 
-__all__ = ["SlowApi"]
+from .slow_api import SlowAPI
+
+__all__ = ["SlowAPI"]

@@ -192,7 +192,7 @@ class SlowAPI:
         )
 
         # TODO(@cooperellidge): handle_websocket(...)
-        # 123
+        # 1
 
         if scope["type"] == "lifespan":
             await self._handle_lifespan(scope, receive, send)
@@ -204,27 +204,21 @@ class SlowAPI:
         self.logger.info(f"End connection: {current_connection}")
 
 
-if __name__ == "__main__":
+def main() -> None:  # noqa: D103
     import uvicorn
 
     app = SlowAPI()
 
     @app.get("/")
     def get_index() -> bytes:
-        """Index route returning "Hello World".
-
-        Returns:
-            bytes: Simply "Hello World".
-        """
         return b"Hello World"
 
     @app.get("/items")
     def get_items() -> bytes:
-        """A custom route.
-
-        Returns:
-            bytes: Simply "Here are some items"
-        """
         return b"Here are some items"
 
     uvicorn.run(app, port=42069)
+
+
+if __name__ == "__main__":
+    main()
