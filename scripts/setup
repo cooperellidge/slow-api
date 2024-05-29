@@ -1,9 +1,10 @@
 #! /bin/bash
 
-rm -vr .venv
-rm -vr .*_cache
+scripts/clean
 
 set -x
+
+rm -vr .venv
 
 python3.11 -m venv .venv
 source .venv/bin/activate

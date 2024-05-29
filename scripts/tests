@@ -2,4 +2,5 @@
 
 set -x
 
-pytest
+coverage run -m pytest
+coverage report
