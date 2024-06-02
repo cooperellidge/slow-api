@@ -2,6 +2,8 @@
 
 set -x
 
+source .venv/bin/activate
+
 ruff format src/
 ruff check --fix src/
 mypy src/
