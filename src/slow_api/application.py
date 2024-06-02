@@ -1,15 +1,3 @@
-"""_summary_.
-
-Raises:
-    ValueError: _description_
-    PathNotFoundException: _description_
-    HttpMethodNotFoundException: _description_
-    UnhandledProtocolException: _description_
-
-Returns:
-    _type_: _description_
-"""
-
 from __future__ import annotations
 
 import logging
@@ -18,9 +6,17 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    Literal,
     MutableMapping,
+    NoReturn,
     Self,
+)
+
+from slow_api.enums import HttpMethod
+from slow_api.exceptions import (
+    HttpError,
+    MethodNotFoundError,
+    PathNotFoundError,
+    UnhandledProtocolError,
 )
 
 Scope = MutableMapping[str, Any]
@@ -28,27 +24,6 @@ Message = MutableMapping[str, Any]
 Recieve = Callable[[], Awaitable[Message]]
 Send = Callable[[Message], Awaitable[None]]
 RouteHandler = Callable[[], bytes]
-
-
-class UnhandledProtocolError(Exception):
-    """UnhandledProtocolError."""
-
-    ...
-
-
-class PathNotFoundError(Exception):
-    """UnhandledProtocolError."""
-
-    ...
-
-
-class HttpMethodNotFoundError(Exception):
-    """HttpMethodNotFoundError."""
-
-    ...
-
-
-HttpMethod = Literal["GET", "POST"]
 
 
 class SlowAPI:
@@ -82,6 +57,9 @@ class SlowAPI:
         if method in self.routes[path]:
             raise ValueError("Method already added to route.")
 
+        if method not in list(HttpMethod):
+            raise NotImplementedError(f"{method} is not a valid HTTP method.")
+
         self.routes[path][method] = handler
 
     def get(self: Self, path: str) -> Callable[[RouteHandler], RouteHandler]:
@@ -92,10 +70,34 @@ class SlowAPI:
         """
 
         def _decorate(func: RouteHandler) -> RouteHandler:
-            self.add_route(func, path, "GET")
+            self.add_route(func, path, HttpMethod.GET)
             return func
 
         return _decorate
+
+    def post(self: Self, path: str) -> Callable[[RouteHandler], RouteHandler]:
+        """_summary_.
+
+        Args:
+            path (str): _description_
+        """
+
+        def _decorate(func: RouteHandler) -> RouteHandler:
+            self.add_route(func, path, HttpMethod.POST)
+            return func
+
+        return _decorate
+
+    def _not_implemented(self: Self, _: str) -> None:
+        raise NotImplementedError
+
+    head = _not_implemented
+    put = _not_implemented
+    delete = _not_implemented
+    connect = _not_implemented
+    option = _not_implemented
+    trace = _not_implemented
+    patch = _not_implemented
 
     async def _handle_lifespan(
         self: Self,
@@ -133,7 +135,7 @@ class SlowAPI:
             if message["type"] == "http.disconnect":
                 return
 
-            if not message["more_body"]:
+            if "more_body" not in message or not message["more_body"]:
                 break
 
         path = scope["path"]
@@ -143,7 +145,7 @@ class SlowAPI:
             raise PathNotFoundError
 
         if method not in self.routes[path]:
-            raise HttpMethodNotFoundError
+            raise MethodNotFoundError
 
         route = self.routes[path][method]
 
@@ -165,6 +167,23 @@ class SlowAPI:
         }
 
         self.logger.info(f"Sending response body: {response}")
+        await send(response)
+
+    async def _handle_http_error(
+        self: Self, error: HttpError, send: Send
+    ) -> None:
+        response = {
+            "type": "http.response.start",
+            "status": error.status_code,
+            "headers": [(b"content-type", b"text/plain")],
+        }
+        await send(response)
+
+        response = {
+            "type": "http.response.body",
+            "body": error.detail.encode("utf-8"),
+            "more_body": False,
+        }
         await send(response)
 
     async def __call__(
@@ -193,13 +212,16 @@ class SlowAPI:
 
         # TODO(@cooperellidge): handle_websocket(...)
         # 1
-
-        if scope["type"] == "lifespan":
-            await self._handle_lifespan(scope, receive, send)
-        elif scope["type"] == "http":
-            await self._handle_http(scope, receive, send)
-        else:
-            raise UnhandledProtocolError
+        try:
+            if scope["type"] == "lifespan":
+                await self._handle_lifespan(scope, receive, send)
+            elif scope["type"] == "http":
+                await self._handle_http(scope, receive, send)
+            else:
+                raise UnhandledProtocolError
+        except HttpError as e:
+            self.logger.error(e)
+            await self._handle_http_error(e, send)
 
         self.logger.info(f"End connection: {current_connection}")
 

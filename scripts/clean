@@ -1,5 +1,6 @@
 !# /bin/bash
 
+rm -v .coverage
 rm -vr .*_cache
 rm -vr */__pycache__
 rm -vr */*/__pycache__

@@ -1,5 +1,4 @@
-"""_summary_."""
+from .application import SlowAPI
 
-from .slow_api import SlowAPI
-
+__version__ = "0.0.1"
 __all__ = ["SlowAPI"]

@@ -25,7 +25,6 @@ select = [
   "SIM",
   "I",
   "N",
-  "D",
   "YTT",
   "ANN",
   "ASYNC",
